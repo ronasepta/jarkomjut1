@@ -1,0 +1,53 @@
+#!/usr/bin/python3
+
+from mininet.topo import Topo
+from mininet.net import Mininet
+from mininet.util import dumpNodeConnections
+from mininet.log import setLogLevel
+from mininet.cli import CLI
+from mininet.node import RemoteController
+from pox.core import core
+from pox.lib.packet import ethernet, ipv4
+
+class part2_topo(Topo):
+    def build(self):
+        s1 = self.addSwitch("s1")
+        h1 = self.addHost("h1", mac="00:00:00:00:00:01", ip="10.0.1.2/24")
+        h2 = self.addHost("h2", mac="00:00:00:00:00:02", ip="10.0.0.2/24")
+        h3 = self.addHost("h3", mac="00:00:00:00:00:03", ip="10.0.0.3/24")
+        h4 = self.addHost("h4", mac="00:00:00:00:00:04", ip="10.0.1.3/24")
+        self.addLink(h1, s1)
+        self.addLink(h2, s1)
+        self.addLink(h3, s1)
+        self.addLink(h4, s1)
+        
+    def _handle_PacketIn(event):
+        packet = event.parsed
+        in_port = event.port
+
+    # Aturan firewall sederhana: Izinkan traffic antara h1 dan h4, blokir lainnya
+            if (packet.src == "00:00:00:00:00:01" and packet.dst == "00:00:00:00:00:04") 
+            or (packet.src == "00:00:00:00:00:04" and packet.dst == "00:00:00:00:00:01"):
+                action = core.openflow.ofp_action_output(port=in_port)  # Izinkan
+            else:
+                action = core.openflow.ofp_action_output(port=core.openflow.OFPP_FLOOD)  # Blokir
+
+        core.openflow.sendToDP(event.connection, event.ofp_packet_in, [action])
+
+        core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
+
+topos = {"part2": part2_topo}
+    
+
+def configure():
+    topo = part2_topo()
+    net = Mininet(topo=topo, controller=RemoteController)
+    net.start()
+
+    CLI(net)
+
+    net.stop()
+
+
+if __name__ == "__main__":
+    configure()
