@@ -21,20 +21,6 @@ class part2_topo(Topo):
         self.addLink(h3, s1)
         self.addLink(h4, s1)
         
-    def _handle_PacketIn(event):
-        packet = event.parsed
-        in_port = event.port
-
-    # Aturan firewall sederhana: Izinkan traffic antara h1 dan h4, blokir lainnya
-            if (packet.src == "00:00:00:00:00:01" and packet.dst == "00:00:00:00:00:04") 
-            or (packet.src == "00:00:00:00:00:04" and packet.dst == "00:00:00:00:00:01"):
-                action = core.openflow.ofp_action_output(port=in_port)  # Izinkan
-            else:
-                action = core.openflow.ofp_action_output(port=core.openflow.OFPP_FLOOD)  # Blokir
-
-        core.openflow.sendToDP(event.connection, event.ofp_packet_in, [action])
-
-        core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
 
 topos = {"part2": part2_topo}
     
